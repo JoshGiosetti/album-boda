@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ricordi Eterni</title>
@@ -35,57 +34,63 @@ input[type="file"] { display:none; }
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
+// 🔧 Datos de Supabase
 const SUPABASE_URL = "https://fxknmcntonqlvllbpgun.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a25tY250b25xbHZsbGJwZ3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkwMjksImV4cCI6MjA4NjIzNTAyOX0.J0M_pHArOFRF8_QvHebNWS9E0ZLPlax6tr9fknQ9XOI";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const cameraInput = document.getElementById("cameraInput");
+const galleryInput = document.getElementById("galleryInput");
+const mensaje = document.getElementById("mensaje");
+
 let fotosSeleccionadas = [];
 
-document.getElementById("cameraInput").addEventListener("change", e => seleccionarFotos(e));
-document.getElementById("galleryInput").addEventListener("change", e => seleccionarFotos(e));
+// Abrir cámara o galería
+function abrirCamara(){ cameraInput.click(); }
+function abrirGaleria(){ galleryInput.click(); }
 
-function abrirCamara(){ document.getElementById("cameraInput").click(); }
-function abrirGaleria(){ document.getElementById("galleryInput").click(); }
+cameraInput.addEventListener("change", e => seleccionarFotos(e));
+galleryInput.addEventListener("change", e => seleccionarFotos(e));
 
 function seleccionarFotos(e){
   fotosSeleccionadas = Array.from(e.target.files);
-  document.getElementById("mensaje").innerText = fotosSeleccionadas.length + " foto(s) seleccionadas";
+  mensaje.innerText = fotosSeleccionadas.length + " foto(s) seleccionadas";
 }
 
-// Subida de fotos a Supabase Storage
+// Subir fotos a Supabase
 async function subirFotos(){
   if(fotosSeleccionadas.length === 0){
-    document.getElementById("mensaje").innerText = "No seleccionaste fotos";
+    mensaje.innerText = "No seleccionaste fotos";
     return;
   }
 
-  document.getElementById("mensaje").innerText = "Subiendo fotos...";
+  mensaje.innerText = "Subiendo fotos...";
 
-  const uploadPromises = fotosSeleccionadas.map(async foto => {
-    const nombre = `${Date.now()}_${foto.name}`;
-    const { data, error } = await supabase.storage.from('album').upload(nombre, foto);
-    if(error){
-      console.error(error);
-      return null;
-    }
-    return nombre;
-  });
+  try {
+    // Subir todas las fotos en paralelo
+    await Promise.all(fotosSeleccionadas.map(async foto => {
+      const nombreArchivo = Date.now() + "_" + foto.name;
+      const { error } = await supabase.storage.from('album').upload(nombreArchivo, foto);
+      if(error) throw error;
+    }));
 
-  const result = await Promise.all(uploadPromises);
+    mensaje.innerText = `✨ Se guardaron ${fotosSeleccionadas.length} foto(s) ✨`;
 
-  const exitos = result.filter(r => r).length;
-  document.getElementById("mensaje").innerText = `✨ ${exitos} fotos guardadas ✨`;
-
-  // Reiniciar contador y selección
-  fotosSeleccionadas = [];
+    // Reiniciar selección y contador
+    fotosSeleccionadas = [];
+  } catch(err){
+    console.error(err);
+    mensaje.innerText = "❌ Error al subir fotos";
+  }
 }
 
-// Abrir álbum
+// Abrir álbum en nueva pestaña
 function verAlbum(){
   window.open("album.html", "_blank");
 }
 
+// Exponer funciones a los botones
 window.subirFotos = subirFotos;
 window.abrirCamara = abrirCamara;
 window.abrirGaleria = abrirGaleria;
@@ -94,4 +99,3 @@ window.verAlbum = verAlbum;
 
 </body>
 </html>
-
