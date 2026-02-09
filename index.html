@@ -31,42 +31,29 @@ input[type="file"] { display:none; }
 <p id="mensaje">0 fotos seleccionadas</p>
 </div>
 
-<script>
-const API_KEY = "0a5f721449bb9499e0f2049648e66abf"; // 🔧 tu API Key de ImgBB
-const GITHUB_TOKEN = "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"; // 🔧 tu token
-const REPO = "JoshGiosetti/album-boda"; // usuario/repositorio
-const FILE_PATH = "fotos.json"; // ruta del JSON
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+// 🔧 REEMPLAZA ESTO CON TUS DATOS DE SUPABASE
+const SUPABASE_URL = "https://fxknmcntonqlvllbpgun.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_VU23SXIXFV5G5_WRlhc-ww_EYXgWVeS";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let fotosSeleccionadas = [];
 
-// Conectar inputs con función
-document.getElementById("cameraInput").addEventListener("change", seleccionarFotos);
-document.getElementById("galleryInput").addEventListener("change", seleccionarFotos);
+document.getElementById("cameraInput").addEventListener("change", e => seleccionarFotos(e));
+document.getElementById("galleryInput").addEventListener("change", e => seleccionarFotos(e));
 
-// Abrir inputs
 function abrirCamara(){ document.getElementById("cameraInput").click(); }
 function abrirGaleria(){ document.getElementById("galleryInput").click(); }
 
-// Contador y selección de fotos
 function seleccionarFotos(e){
   fotosSeleccionadas = Array.from(e.target.files);
   document.getElementById("mensaje").innerText = fotosSeleccionadas.length + " foto(s) seleccionadas";
 }
 
-// Convertir archivo a Base64
-function toBase64(file){
-  return new Promise((resolve,reject)=>{
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = ()=>resolve(reader.result);
-    reader.onerror = err=>reject(err);
-  });
-}
-  async function subirFotos() {
-  // ... código optimizado con compresión y subida en paralelo
-  }
-
-// Subir fotos en paralelo (mini)
+// Subida de fotos a Supabase Storage
 async function subirFotos(){
   if(fotosSeleccionadas.length === 0){
     document.getElementById("mensaje").innerText = "No seleccionaste fotos";
@@ -75,59 +62,35 @@ async function subirFotos(){
 
   document.getElementById("mensaje").innerText = "Subiendo fotos...";
 
-  const urlsSubidas = await Promise.all(fotosSeleccionadas.map(async foto=>{
-    const blob = await comprimirImagenMini(foto);
-    const base64 = await toBase64(blob);
-    const formData = new FormData();
-    formData.append("image", base64.split(",")[1]);
-    formData.append("key", API_KEY);
-
-    const res = await fetch("https://api.imgbb.com/1/upload", { method:"POST", body:formData });
-    const data = await res.json();
-    return data.data.url;
-  }));
-
-  await actualizarJSON(urlsSubidas);
-
-  document.getElementById("mensaje").innerText = "✨ Tus recuerdos fueron guardados ✨";
-  fotosSeleccionadas = [];
-}
-
-// Guardar URLs en GitHub
-async function actualizarJSON(nuevasUrls){
-  const urlAPI = `https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`;
-  
-  const res = await fetch(urlAPI);
-  const data = await res.json();
-  const contenidoActual = JSON.parse(atob(data.content));
-
-  const contenidoActualizado = contenidoActual.concat(nuevasUrls);
-
-  await fetch(urlAPI, {
-    method: "PUT",
-    headers: {
-      "Authorization": `token ${GITHUB_TOKEN}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      message: "Agregar nuevas fotos",
-      content: btoa(JSON.stringify(contenidoActualizado)),
-      sha: data.sha
-    })
+  const uploadPromises = fotosSeleccionadas.map(async foto => {
+    const nombre = `${Date.now()}_${foto.name}`;
+    const { data, error } = await supabase.storage.from('album').upload(nombre, foto);
+    if(error){
+      console.error(error);
+      return null;
+    }
+    return nombre;
   });
+
+  const result = await Promise.all(uploadPromises);
+
+  document.getElementById("mensaje").innerText = `✨ ${result.filter(r=>r).length} fotos guardadas ✨`;
+
+  // Reiniciar contador y selección
+  fotosSeleccionadas = [];
 }
 
 // Abrir álbum
 function verAlbum(){
-  window.open("album.html","_blank");
+  window.open("album.html", "_blank");
 }
 
-// Exponer funciones
+// Exponer funciones para los botones
 window.subirFotos = subirFotos;
 window.abrirCamara = abrirCamara;
 window.abrirGaleria = abrirGaleria;
 window.verAlbum = verAlbum;
 </script>
+
 </body>
 </html>
-
