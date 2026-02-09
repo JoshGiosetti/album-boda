@@ -16,7 +16,7 @@ img { width: 100%; border-radius:10px; margin-bottom:10px;}
 <body>
 
 <div class="box">
-<h1>📸 Álbum Ricordi Eterni</h1>
+<h1>📖 Álbum De Recuerdos 📖</h1>
 <p>💍 X & D 💍</p>
 <div id="mensaje">Cargando álbum...</div>
 <div id="album"></div>
@@ -26,7 +26,7 @@ img { width: 100%; border-radius:10px; margin-bottom:10px;}
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 const SUPABASE_URL = "https://fxknmcntonqlvllbpgun.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a25tY250b25xbGJwZ3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkwMjksImV4cCI6MjA4NjIzNTAyOX0.J0M_pHArOFRF8_QvHebNWS9E0ZLPlax6tr9fknQ9XOI";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a25tY250b25xbHZsbGJwZ3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkwMjksImV4cCI6MjA4NjIzNTAyOX0.J0M_pHArOFRF8_QvHebNWS9E0ZLPlax6tr9fknQ9XOI";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -67,7 +67,7 @@ async function mostrarFotos() {
 // Cargar fotos al abrir la página
 mostrarFotos();
 
-// Actualizar automáticamente cada 5 segundos
+// Actualización automática cada 5 segundos
 setInterval(mostrarFotos, 5000);
 </script>
 
