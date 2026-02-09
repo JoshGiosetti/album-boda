@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Álbum Ricordi Eterni</title>
+<style>
+body { font-family:"Times New Roman", Times, serif; background:#0B3C91; margin:0; padding:20px; text-align:center;}
+h1 { color:#FFF; margin-bottom:20px;}
+#album { display:grid; grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap:10px;}
+#album img { width:100%; border-radius:10px; object-fit:cover;}
+</style>
+</head>
+<body>
+
+<h1>📸 Álbum Ricordi Eterni</h1>
+<div id="album">Cargando fotos...</div>
+
+<script>
+const API_KEY = "0a5f721449bb9499e0f2049648e66abf"; // 🔧 misma API Key
+const albumDiv = document.getElementById("album");
+
+// Opcional: si quieres guardar URLs manualmente, aquí puedes tener un arreglo
+// o un JSON externo con las URLs de fotos ya subidas.
+// Con ImgBB no hay “lista de álbum automática” a menos que guardes las URLs en algún JSON público.
+// Para hacerlo en tiempo real puedes usar un JSON alojado en GitHub, por ejemplo.
+
+async function cargarFotos(){
+  albumDiv.innerHTML="Cargando fotos...";
+  // Ejemplo: reemplaza con tus URLs subidas manualmente
+  const fotos = [
+    // "https://i.ibb.co/xxxx/foto1.jpg",
+    // "https://i.ibb.co/xxxx/foto2.jpg"
+  ];
+
+  albumDiv.innerHTML="";
+  fotos.forEach(url=>{
+    const img = document.createElement("img");
+    img.src = url;
+    albumDiv.appendChild(img);
+  });
+}
+
+cargarFotos();
+</script>
+</body>
+</html>
