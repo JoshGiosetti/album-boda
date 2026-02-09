@@ -25,22 +25,20 @@ img { width: 100%; border-radius:10px; margin-bottom:10px;}
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-// 🔧 Tus datos de Supabase
 const SUPABASE_URL = "https://fxknmcntonqlvllbpgun.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a25tY250b25xbHZsbGJwZ3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkwMjksImV4cCI6MjA4NjIzNTAyOX0.J0M_pHArOFRF8_QvHebNWS9E0ZLPlax6tr9fknQ9XOI";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a25tY250b25xbGJwZ3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkwMjksImV4cCI6MjA4NjIzNTAyOX0.J0M_pHArOFRF8_QvHebNWS9E0ZLPlax6tr9fknQ9XOI";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const albumDiv = document.getElementById("album");
 const mensajeDiv = document.getElementById("mensaje");
 
-// Función para mostrar fotos
 async function mostrarFotos() {
   mensajeDiv.innerText = "Cargando álbum...";
 
   const { data, error } = await supabase.storage.from('album').list('', {
     limit: 100,
-    sortBy: { column: 'name', order: 'desc' }  // Fotos más recientes primero
+    sortBy: { column: 'name', order: 'desc' }
   });
 
   if(error){
@@ -55,6 +53,23 @@ async function mostrarFotos() {
     return;
   }
 
-  mensajeDiv.innerText = "";
   albumDiv.innerHTML = "";
+  mensajeDiv.innerText = "";
+
   data.forEach(file => {
+    const img = document.createElement("img");
+    img.src = `${SUPABASE_URL}/storage/v1/object/public/album/${file.name}`;
+    img.alt = file.name;
+    albumDiv.appendChild(img);
+  });
+}
+
+// Cargar fotos al abrir la página
+mostrarFotos();
+
+// Actualizar automáticamente cada 5 segundos
+setInterval(mostrarFotos, 5000);
+</script>
+
+</body>
+</html>
