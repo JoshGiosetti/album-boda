@@ -34,7 +34,6 @@ input[type="file"] { display:none; }
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-// 🔧 REEMPLAZA ESTO CON TUS DATOS DE SUPABASE
 const SUPABASE_URL = "https://fxknmcntonqlvllbpgun.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a25tY250b25xbHZsbGJwZ3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkwMjksImV4cCI6MjA4NjIzNTAyOX0.J0M_pHArOFRF8_QvHebNWS9E0ZLPlax6tr9fknQ9XOI";
 
@@ -74,7 +73,8 @@ async function subirFotos(){
 
   const result = await Promise.all(uploadPromises);
 
-  document.getElementById("mensaje").innerText = `✨ ${result.filter(r=>r).length} fotos guardadas ✨`;
+  const exitos = result.filter(r => r).length;
+  document.getElementById("mensaje").innerText = `✨ ${exitos} fotos guardadas ✨`;
 
   // Reiniciar contador y selección
   fotosSeleccionadas = [];
@@ -85,7 +85,6 @@ function verAlbum(){
   window.open("album.html", "_blank");
 }
 
-// Exponer funciones para los botones
 window.subirFotos = subirFotos;
 window.abrirCamara = abrirCamara;
 window.abrirGaleria = abrirGaleria;
@@ -94,4 +93,3 @@ window.verAlbum = verAlbum;
 
 </body>
 </html>
-
