@@ -63,8 +63,8 @@ function toBase64(file){
   });
 }
 
-// Comprimir imagen para subir más rápido
-function comprimirImagen(file) {
+// Comprimir imagen mini (400x300 px)
+function comprimirImagenMini(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -73,8 +73,8 @@ function comprimirImagen(file) {
       img.src = event.target.result;
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 800;
-        const MAX_HEIGHT = 600;
+        const MAX_WIDTH = 400;
+        const MAX_HEIGHT = 300;
         let width = img.width;
         let height = img.height;
 
@@ -88,34 +88,13 @@ function comprimirImagen(file) {
         canvas.height = height;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.6);
+        canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.5); // calidad 50%
       };
     };
   });
 }
 
-// Subir fotos por lotes (batch) de 4 fotos
-async function subirEnLotes(fotos, lote = 4){
-  let urls = [];
-  for(let i=0; i<fotos.length; i+=lote){
-    const subLote = fotos.slice(i, i+lote);
-    const resultados = await Promise.all(subLote.map(async foto=>{
-      const blob = await comprimirImagen(foto);
-      const base64 = await toBase64(blob);
-      const formData = new FormData();
-      formData.append("image", base64.split(",")[1]);
-      formData.append("key", API_KEY);
-
-      const res = await fetch("https://api.imgbb.com/1/upload", { method:"POST", body:formData });
-      const data = await res.json();
-      return data.data.url;
-    }));
-    urls = urls.concat(resultados);
-  }
-  return urls;
-}
-
-// Subir fotos
+// Subir fotos en paralelo (mini)
 async function subirFotos(){
   if(fotosSeleccionadas.length === 0){
     document.getElementById("mensaje").innerText = "No seleccionaste fotos";
@@ -124,7 +103,17 @@ async function subirFotos(){
 
   document.getElementById("mensaje").innerText = "Subiendo fotos...";
 
-  const urlsSubidas = await subirEnLotes(fotosSeleccionadas);
+  const urlsSubidas = await Promise.all(fotosSeleccionadas.map(async foto=>{
+    const blob = await comprimirImagenMini(foto);
+    const base64 = await toBase64(blob);
+    const formData = new FormData();
+    formData.append("image", base64.split(",")[1]);
+    formData.append("key", API_KEY);
+
+    const res = await fetch("https://api.imgbb.com/1/upload", { method:"POST", body:formData });
+    const data = await res.json();
+    return data.data.url;
+  }));
 
   await actualizarJSON(urlsSubidas);
 
@@ -166,7 +155,6 @@ window.subirFotos = subirFotos;
 window.abrirCamara = abrirCamara;
 window.abrirGaleria = abrirGaleria;
 window.verAlbum = verAlbum;
-
 </script>
 </body>
 </html>
