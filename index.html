@@ -34,7 +34,6 @@ input[type="file"] { display:none; }
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-// 🔧 Datos de Supabase
 const SUPABASE_URL = "https://fxknmcntonqlvllbpgun.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a25tY250b25xbHZsbGJwZ3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkwMjksImV4cCI6MjA4NjIzNTAyOX0.J0M_pHArOFRF8_QvHebNWS9E0ZLPlax6tr9fknQ9XOI";
 
@@ -46,7 +45,6 @@ const mensaje = document.getElementById("mensaje");
 
 let fotosSeleccionadas = [];
 
-// Abrir cámara o galería
 function abrirCamara(){ cameraInput.click(); }
 function abrirGaleria(){ galleryInput.click(); }
 
@@ -58,7 +56,7 @@ function seleccionarFotos(e){
   mensaje.innerText = fotosSeleccionadas.length + " foto(s) seleccionadas";
 }
 
-// Subir fotos a Supabase
+// Subida de fotos optimizada
 async function subirFotos(){
   if(fotosSeleccionadas.length === 0){
     mensaje.innerText = "No seleccionaste fotos";
@@ -68,16 +66,13 @@ async function subirFotos(){
   mensaje.innerText = "Subiendo fotos...";
 
   try {
-    // Subir todas las fotos en paralelo
     await Promise.all(fotosSeleccionadas.map(async foto => {
       const nombreArchivo = Date.now() + "_" + foto.name;
-      const { error } = await supabase.storage.from('album').upload(nombreArchivo, foto);
+      const { data, error } = await supabase.storage.from('album').upload(nombreArchivo, foto);
       if(error) throw error;
     }));
 
     mensaje.innerText = `✨ Se guardaron ${fotosSeleccionadas.length} foto(s) ✨`;
-
-    // Reiniciar selección y contador
     fotosSeleccionadas = [];
   } catch(err){
     console.error(err);
@@ -85,12 +80,10 @@ async function subirFotos(){
   }
 }
 
-// Abrir álbum en nueva pestaña
 function verAlbum(){
   window.open("album.html", "_blank");
 }
 
-// Exponer funciones a los botones
 window.subirFotos = subirFotos;
 window.abrirCamara = abrirCamara;
 window.abrirGaleria = abrirGaleria;
