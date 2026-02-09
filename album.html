@@ -58,19 +58,3 @@ async function mostrarFotos() {
   mensajeDiv.innerText = "";
   albumDiv.innerHTML = "";
   data.forEach(file => {
-    const img = document.createElement("img");
-    img.src = `${SUPABASE_URL}/storage/v1/object/public/album/${file.name}`;
-    img.alt = file.name;
-    albumDiv.appendChild(img);
-  });
-}
-
-// Cargar fotos al abrir la página
-mostrarFotos();
-
-// Actualizar automáticamente cada 5 segundos
-setInterval(mostrarFotos, 5000);
-</script>
-
-</body>
-</html>
