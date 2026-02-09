@@ -6,69 +6,62 @@
 <title>Álbum Ricordi Eterni</title>
 <style>
 body { font-family:"Times New Roman", Times, serif; background:#0B3C91; text-align:center; margin:0; padding:20px; }
-.box { background:#FFF; padding:25px; border-radius:14px; max-width:480px; margin:40px auto; box-shadow:0 6px 20px rgba(0,0,0,0.15);}
-h1 { color:#0B3C91; margin-bottom:10px;}
-img { width: 100%; border-radius:10px; margin-bottom:10px;}
-#album { margin-top:20px; }
-#mensaje { color:#0B3C91; margin-top:10px; }
+#album { max-width:480px; margin:20px auto; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+#album img { width: 100%; max-width:200px; border-radius:10px; }
+p { color:#FFF; font-size:18px; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<div class="box">
-<h1>📖 Álbum De Recuerdos 📖</h1>
-<p>💍 X & D 💍</p>
-<div id="mensaje">Cargando álbum...</div>
+<h1 style="color:#FFF;">📸 Álbum Ricordi Eterni 📸</h1>
 <div id="album"></div>
-</div>
+<p id="mensaje">Cargando álbum...</p>
 
-<script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
+<script>
 const SUPABASE_URL = "https://fxknmcntonqlvllbpgun.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a25tY250b25xbHZsbGJwZ3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkwMjksImV4cCI6MjA4NjIzNTAyOX0.J0M_pHArOFRF8_QvHebNWS9E0ZLPlax6tr9fknQ9XOI";
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const albumDiv = document.getElementById("album");
-const mensajeDiv = document.getElementById("mensaje");
+const mensaje = document.getElementById("mensaje");
 
-async function mostrarFotos() {
-  mensajeDiv.innerText = "Cargando álbum...";
-
-  const { data, error } = await supabase.storage.from('album').list('', {
-    limit: 100,
-    sortBy: { column: 'name', order: 'desc' }
-  });
-
-  if(error){
-    mensajeDiv.innerText = "❌ No se pudieron cargar las fotos.";
-    console.error(error);
-    return;
-  }
-
-  if(data.length === 0){
-    mensajeDiv.innerText = "No hay fotos aún. ¡Sé el primero en subir un recuerdo!";
-    albumDiv.innerHTML = "";
-    return;
-  }
-
+async function mostrarAlbum(){
+  mensaje.innerText = "Cargando álbum...";
   albumDiv.innerHTML = "";
-  mensajeDiv.innerText = "";
 
-  data.forEach(file => {
-    const img = document.createElement("img");
-    img.src ="https://fxknmcntonqlvllbpgun.supabase.co/storage/v1/object/public/album/1770671310619_1000048340.jpg";
-    img.alt = file.name;
-    albumDiv.appendChild(img);
-  });
+  try {
+    const { data, error } = await supabase.storage.from('album').list('Album de recuerdos', {
+      limit: 100,
+      sortBy: { column: 'name', order: 'desc' }
+    });
+
+    if(error) throw error;
+
+    if(data.length === 0){
+      mensaje.innerText = "No hay fotos aún. ¡Sé el primero en subir un recuerdo!";
+      return;
+    }
+
+    data.forEach(file => {
+      const img = document.createElement("img");
+      img.src = `${SUPABASE_URL}/storage/v1/object/public/album/Album de recuerdos/${file.name}`;
+      albumDiv.appendChild(img);
+    });
+
+    mensaje.innerText = "";
+
+  } catch(err){
+    console.error(err);
+    mensaje.innerText = "❌ No se pudieron cargar las fotos.";
+  }
 }
 
-// Cargar fotos al abrir la página
-mostrarFotos();
+// Mostrar álbum al cargar
+mostrarAlbum();
 
-// Actualización automática cada 5 segundos
-setInterval(mostrarFotos, 5000);
+// Actualización automática cada 15 segundos
+setInterval(mostrarAlbum, 15000);
 </script>
 
 </body>
