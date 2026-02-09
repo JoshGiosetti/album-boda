@@ -3,42 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Álbum De Recuerdos</title>
+<title>Álbum Ricordi Eterni</title>
 <style>
-body { font-family:"Times New Roman", Times, serif; background:#0B3C91; margin:0; padding:20px; text-align:center;}
-h1 { color:#FFF; margin-bottom:20px;}
-#album { display:grid; grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap:10px;}
-#album img { width:100%; border-radius:10px; object-fit:cover;}
+body { font-family:"Times New Roman", Times, serif; background:#0B3C91; text-align:center; margin:0; padding:20px; }
+.box { background:#FFF; padding:25px; border-radius:14px; max-width:480px; margin:40px auto; box-shadow:0 6px 20px rgba(0,0,0,0.15);}
+h1 { color:#0B3C91; margin-bottom:10px;}
+img { width: 100%; border-radius:10px; margin-bottom:10px;}
+#album { margin-top:20px; }
 </style>
 </head>
 <body>
 
-<h1>📸 Álbum De Recuerdos 📸</h1>
-<div id="album">Cargando fotos...</div>
+<div class="box">
+<h1>📸 Álbum Ricordi Eterni</h1>
+<p>💍 X & D 💍</p>
+<div id="album">Cargando álbum...</div>
+</div>
 
-<script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const SUPABASE_URL = "TU_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "TU_SUPABASE_ANON_KEY";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const albumDiv = document.getElementById("album");
-const URL_JSON = "https://raw.githubusercontent.com/JoshGiosetti/album-boda/refs/heads/main/fotos.json";
 
-async function cargarFotos(){
-  try{
-    const res = await fetch(URL_JSON);
-    const fotos = await res.json();
-    albumDiv.innerHTML="";
-    fotos.reverse().forEach(url=>{
-      const img = document.createElement("img");
-      img.src = url;
-      albumDiv.appendChild(img);
-    });
-  }catch(err){
-    albumDiv.innerHTML="No se pudieron cargar las fotos";
-    console.error(err);
+// Función para mostrar fotos
+async function mostrarFotos() {
+  albumDiv.innerHTML = "Cargando álbum...";
+  
+  const { data, error } = await supabase.storage.from('album').list('', { limit: 100, sortBy: { column: 'name', order: 'desc' } });
+  if (error) {
+    albumDiv.innerHTML = "❌ No se pudieron cargar las fotos.";
+    console.error(error);
+    return;
   }
+
+  if (data.length === 0) {
+    albumDiv.innerHTML = "No hay fotos aún. ¡Sé el primero en subir un recuerdo!";
+    return;
+  }
+
+  albumDiv.innerHTML = "";
+  data.forEach(file => {
+    const img = document.createElement("img");
+    img.src = `${SUPABASE_URL}/storage/v1/object/public/album/${file.name}`;
+    albumDiv.appendChild(img);
+  });
 }
 
-// Actualizar cada 10 segundos
-cargarFotos();
-setInterval(cargarFotos,10000);
+// Actualización automática cada 5 segundos
+mostrarFotos();
+setInterval(mostrarFotos, 5000);
 </script>
 
 </body>
