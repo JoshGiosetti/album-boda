@@ -10,6 +10,7 @@ body { font-family:"Times New Roman", Times, serif; background:#0B3C91; text-ali
 h1 { color:#0B3C91; margin-bottom:10px;}
 img { width: 100%; border-radius:10px; margin-bottom:10px;}
 #album { margin-top:20px; }
+#mensaje { color:#0B3C91; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -17,45 +18,57 @@ img { width: 100%; border-radius:10px; margin-bottom:10px;}
 <div class="box">
 <h1>📸 Álbum Ricordi Eterni</h1>
 <p>💍 X & D 💍</p>
-<div id="album">Cargando álbum...</div>
+<div id="mensaje">Cargando álbum...</div>
+<div id="album"></div>
 </div>
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
+// 🔧 Tus datos de Supabase
 const SUPABASE_URL = "https://fxknmcntonqlvllbpgun.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a25tY250b25xbHZsbGJwZ3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkwMjksImV4cCI6MjA4NjIzNTAyOX0.J0M_pHArOFRF8_QvHebNWS9E0ZLPlax6tr9fknQ9XOI";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const albumDiv = document.getElementById("album");
+const mensajeDiv = document.getElementById("mensaje");
 
-// Mostrar fotos
+// Función para mostrar fotos
 async function mostrarFotos() {
-  albumDiv.innerHTML = "Cargando álbum...";
+  mensajeDiv.innerText = "Cargando álbum...";
 
-  const { data, error } = await supabase.storage.from('album').list('', { limit: 100, sortBy: { column: 'name', order: 'desc' } });
+  const { data, error } = await supabase.storage.from('album').list('', {
+    limit: 100,
+    sortBy: { column: 'name', order: 'desc' }  // Fotos más recientes primero
+  });
 
   if(error){
-    albumDiv.innerHTML = "❌ No se pudieron cargar las fotos.";
+    mensajeDiv.innerText = "❌ No se pudieron cargar las fotos.";
     console.error(error);
     return;
   }
 
   if(data.length === 0){
-    albumDiv.innerHTML = "No hay fotos aún. ¡Sé el primero en subir un recuerdo!";
+    mensajeDiv.innerText = "No hay fotos aún. ¡Sé el primero en subir un recuerdo!";
+    albumDiv.innerHTML = "";
     return;
   }
 
+  mensajeDiv.innerText = "";
   albumDiv.innerHTML = "";
   data.forEach(file => {
     const img = document.createElement("img");
     img.src = `${SUPABASE_URL}/storage/v1/object/public/album/${file.name}`;
+    img.alt = file.name;
     albumDiv.appendChild(img);
   });
 }
 
-// Actualización automática cada 5 segundos
+// Cargar fotos al abrir la página
 mostrarFotos();
+
+// Actualizar automáticamente cada 5 segundos
 setInterval(mostrarFotos, 5000);
 </script>
 
