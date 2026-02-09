@@ -10,42 +10,40 @@ body { font-family:"Times New Roman", Times, serif; background:#0B3C91; text-ali
 h1 { color:#0B3C91; margin-bottom:10px;}
 button { margin-top:15px; padding:14px; width:100%; background:#0B3C91; border:none; color:#FFF; font-size:16px; border-radius:10px; cursor:pointer;}
 button:hover { opacity:0.9;}
-#mensaje, #contador { margin-top:15px; color:#0B3C91; }
+#mensaje { margin-top:15px; color:#0B3C91; }
 input[type="file"] { display:none; }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <div class="box">
 <h1>✨RECUERDOS✨</h1>
 <p>💍 X & D 💍</p>
-<p id="contador">0 fotos seleccionadas</p>
 
 <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple>
 <input type="file" id="galleryInput" accept="image/*" multiple>
 
-<button id="btnCamara">📸 Captura el momento</button>
-<button id="btnGaleria">🖼️ Subir tu recuerdo</button>
-<button id="btnGuardar">💾 Guardar tu recuerdo</button>
-<button id="btnAlbum">📂 Ver álbum</button>
+<button onclick="abrirCamara()">📸 Captura el momento</button>
+<button onclick="abrirGaleria()">🖼️ Subir tu recuerdo</button>
+<button onclick="subirFotos()">💾 Guardar tu recuerdo</button>
 
-<p id="mensaje"></p>
+<p id="mensaje">0 fotos seleccionadas</p>
 </div>
 
-<script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
 const SUPABASE_URL = "https://fxknmcntonqlvllbpgun.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a25tY250b25xbHZsbGJwZ3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkwMjksImV4cCI6MjA4NjIzNTAyOX0.J0M_pHArOFRF8_QvHebNWS9E0ZLPlax6tr9fknQ9XOI";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const cameraInput = document.getElementById("cameraInput");
+const galleryInput = document.getElementById("galleryInput");
+const mensaje = document.getElementById("mensaje");
 
 let fotosSeleccionadas = [];
 
-const mensaje = document.getElementById("mensaje");
-const contador = document.getElementById("contador");
-const cameraInput = document.getElementById("cameraInput");
-const galleryInput = document.getElementById("galleryInput");
-
-// Funciones
 function abrirCamara(){ cameraInput.click(); }
 function abrirGaleria(){ galleryInput.click(); }
 
@@ -54,25 +52,27 @@ galleryInput.addEventListener("change", e => seleccionarFotos(e));
 
 function seleccionarFotos(e){
   fotosSeleccionadas = Array.from(e.target.files);
-  contador.innerText = fotosSeleccionadas.length + " foto(s) seleccionadas";
+  mensaje.innerText = fotosSeleccionadas.length + " foto(s) seleccionadas";
 }
 
-async function subirFotos() {
+// Subida de fotos optimizada
+async function subirFotos(){
   if(fotosSeleccionadas.length === 0){
     mensaje.innerText = "No seleccionaste fotos";
     return;
   }
+
   mensaje.innerText = "Subiendo fotos...";
 
   try {
     await Promise.all(fotosSeleccionadas.map(async foto => {
-      const nombreArchivo = "Album de recuerdos/" + Date.now() + "_" + foto.name;
+      const nombreArchivo = Date.now() + "_" + foto.name;
       const { data, error } = await supabase.storage.from('album').upload(nombreArchivo, foto);
       if(error) throw error;
     }));
+
     mensaje.innerText = `✨ Se guardaron ${fotosSeleccionadas.length} foto(s) ✨`;
     fotosSeleccionadas = [];
-    contador.innerText = "0 fotos seleccionadas";
   } catch(err){
     console.error(err);
     mensaje.innerText = "❌ Error al subir fotos";
@@ -83,11 +83,10 @@ function verAlbum(){
   window.open("album.html", "_blank");
 }
 
-// Asignar botones
-document.getElementById("btnCamara").onclick = abrirCamara;
-document.getElementById("btnGaleria").onclick = abrirGaleria;
-document.getElementById("btnGuardar").onclick = subirFotos;
-document.getElementById("btnAlbum").onclick = verAlbum;
+window.subirFotos = subirFotos;
+window.abrirCamara = abrirCamara;
+window.abrirGaleria = abrirGaleria;
+window.verAlbum = verAlbum;
 </script>
 
 </body>
