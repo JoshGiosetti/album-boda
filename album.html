@@ -13,35 +13,34 @@ h1 { color:#FFF; margin-bottom:20px;}
 </head>
 <body>
 
-<h1>📸 Álbum Ricordi Eterni</h1>
+<h1>📸 Álbum De Recuerdos</h1>
 <div id="album">Cargando fotos...</div>
 
 <script>
-const API_KEY = "0a5f721449bb9499e0f2049648e66abf"; // 🔧 misma API Key
 const albumDiv = document.getElementById("album");
 
-// Opcional: si quieres guardar URLs manualmente, aquí puedes tener un arreglo
-// o un JSON externo con las URLs de fotos ya subidas.
-// Con ImgBB no hay “lista de álbum automática” a menos que guardes las URLs en algún JSON público.
-// Para hacerlo en tiempo real puedes usar un JSON alojado en GitHub, por ejemplo.
+// URL pública de tu JSON en GitHub
+const URL_JSON = "https://raw.githubusercontent.com/TU_USUARIO/album-boda/main/fotos.json";
 
 async function cargarFotos(){
-  albumDiv.innerHTML="Cargando fotos...";
-  // Ejemplo: reemplaza con tus URLs subidas manualmente
-  const fotos = [
-    // "https://i.ibb.co/xxxx/foto1.jpg",
-    // "https://i.ibb.co/xxxx/foto2.jpg"
-  ];
-
-  albumDiv.innerHTML="";
-  fotos.forEach(url=>{
-    const img = document.createElement("img");
-    img.src = url;
-    albumDiv.appendChild(img);
-  });
+  try{
+    const res = await fetch(URL_JSON);
+    const fotos = await res.json();
+    albumDiv.innerHTML="";
+    fotos.reverse().forEach(url=>{
+      const img = document.createElement("img");
+      img.src = url;
+      albumDiv.appendChild(img);
+    });
+  }catch(err){
+    albumDiv.innerHTML="No se pudieron cargar las fotos";
+    console.error(err);
+  }
 }
 
+// Actualizar álbum cada 10 segundos
 cargarFotos();
+setInterval(cargarFotos, 10000);
 </script>
 </body>
 </html>
