@@ -10,7 +10,7 @@ body { font-family:"Times New Roman", Times, serif; background:#0B3C91; text-ali
 h1 { color:#0B3C91; margin-bottom:10px;}
 button { margin-top:15px; padding:14px; width:100%; background:#0B3C91; border:none; color:#FFF; font-size:16px; border-radius:10px; cursor:pointer;}
 button:hover { opacity:0.9;}
-#mensaje { margin-top:15px; color:#0B3C91; }
+#mensaje, #contador { margin-top:15px; color:#0B3C91; }
 input[type="file"] { display:none; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -25,10 +25,10 @@ input[type="file"] { display:none; }
 <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple>
 <input type="file" id="galleryInput" accept="image/*" multiple>
 
-<button onclick="abrirCamara()">📸 Captura el momento</button>
-<button onclick="abrirGaleria()">🖼️ Subir tu recuerdo</button>
-<button onclick="subirFotos()">💾 Guardar tu recuerdo</button>
-<button onclick="verAlbum()">📂 Ver álbum</button>
+<button id="btnCamara">📸 Captura el momento</button>
+<button id="btnGaleria">🖼️ Subir tu recuerdo</button>
+<button id="btnGuardar">💾 Guardar tu recuerdo</button>
+<button id="btnAlbum">📂 Ver álbum</button>
 
 <p id="mensaje"></p>
 </div>
@@ -42,12 +42,15 @@ let fotosSeleccionadas = [];
 
 const mensaje = document.getElementById("mensaje");
 const contador = document.getElementById("contador");
+const cameraInput = document.getElementById("cameraInput");
+const galleryInput = document.getElementById("galleryInput");
 
-document.getElementById("cameraInput").addEventListener("change", e=> seleccionarFotos(e));
-document.getElementById("galleryInput").addEventListener("change", e=> seleccionarFotos(e));
+// Funciones
+function abrirCamara(){ cameraInput.click(); }
+function abrirGaleria(){ galleryInput.click(); }
 
-function abrirCamara(){ document.getElementById("cameraInput").click(); }
-function abrirGaleria(){ document.getElementById("galleryInput").click(); }
+cameraInput.addEventListener("change", e => seleccionarFotos(e));
+galleryInput.addEventListener("change", e => seleccionarFotos(e));
 
 function seleccionarFotos(e){
   fotosSeleccionadas = Array.from(e.target.files);
@@ -59,19 +62,14 @@ async function subirFotos() {
     mensaje.innerText = "No seleccionaste fotos";
     return;
   }
-
   mensaje.innerText = "Subiendo fotos...";
 
   try {
     await Promise.all(fotosSeleccionadas.map(async foto => {
       const nombreArchivo = "Album de recuerdos/" + Date.now() + "_" + foto.name;
-      const { data, error } = await supabase
-        .storage
-        .from('album')
-        .upload(nombreArchivo, foto);
+      const { data, error } = await supabase.storage.from('album').upload(nombreArchivo, foto);
       if(error) throw error;
     }));
-
     mensaje.innerText = `✨ Se guardaron ${fotosSeleccionadas.length} foto(s) ✨`;
     fotosSeleccionadas = [];
     contador.innerText = "0 fotos seleccionadas";
@@ -85,11 +83,12 @@ function verAlbum(){
   window.open("album.html", "_blank");
 }
 
-// Exponer funciones para botones
-window.subirFotos = subirFotos;
-window.abrirCamara = abrirCamara;
-window.abrirGaleria = abrirGaleria;
-window.verAlbum = verAlbum;
+// Asignar botones
+document.getElementById("btnCamara").onclick = abrirCamara;
+document.getElementById("btnGaleria").onclick = abrirGaleria;
+document.getElementById("btnGuardar").onclick = subirFotos;
+document.getElementById("btnAlbum").onclick = verAlbum;
+
 </script>
 
 </body>
