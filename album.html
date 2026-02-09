@@ -25,22 +25,23 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const SUPABASE_URL = "https://fxknmcntonqlvllbpgun.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a25tY250b25xbHZsbGJwZ3VuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NTkwMjksImV4cCI6MjA4NjIzNTAyOX0.J0M_pHArOFRF8_QvHebNWS9E0ZLPlax6tr9fknQ9XOI";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const albumDiv = document.getElementById("album");
 
-// Función para mostrar fotos
+// Mostrar fotos
 async function mostrarFotos() {
   albumDiv.innerHTML = "Cargando álbum...";
-  
+
   const { data, error } = await supabase.storage.from('album').list('', { limit: 100, sortBy: { column: 'name', order: 'desc' } });
-  if (error) {
+
+  if(error){
     albumDiv.innerHTML = "❌ No se pudieron cargar las fotos.";
     console.error(error);
     return;
   }
 
-  if (data.length === 0) {
+  if(data.length === 0){
     albumDiv.innerHTML = "No hay fotos aún. ¡Sé el primero en subir un recuerdo!";
     return;
   }
