@@ -5,34 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ricordi Eterni</title>
 <style>
-body {
-  font-family: "Times New Roman", Times, serif;
-  background: #0B3C91;
-  text-align: center;
-  padding: 20px;
-  margin: 0;
-}
-.box {
-  background: #FFF;
-  padding: 25px;
-  border-radius: 14px;
-  max-width: 480px;
-  margin: 40px auto;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-}
-h1 { color:#0B3C91; margin-bottom:10px; }
-button {
-  margin-top: 15px;
-  padding: 14px;
-  width: 100%;
-  background: #0B3C91;
-  border: none;
-  color: #FFF;
-  font-size: 16px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-button:hover { opacity: 0.9; }
+body { font-family:"Times New Roman", Times, serif; background:#0B3C91; text-align:center; margin:0; padding:20px; }
+.box { background:#FFF; padding:25px; border-radius:14px; max-width:480px; margin:40px auto; box-shadow:0 6px 20px rgba(0,0,0,0.15);}
+h1 { color:#0B3C91; margin-bottom:10px;}
+button { margin-top:15px; padding:14px; width:100%; background:#0B3C91; border:none; color:#FFF; font-size:16px; border-radius:10px; cursor:pointer;}
+button:hover { opacity:0.9;}
 #mensaje { margin-top:15px; color:#0B3C91; }
 input[type="file"] { display:none; }
 </style>
@@ -40,29 +17,38 @@ input[type="file"] { display:none; }
 <body>
 
 <div class="box">
-  <h1>✨RECUERDOS✨</h1>
-  <p>💍 X & D 💍</p>
+<h1>✨RECUERDOS✨</h1>
+<p>💍 X & D 💍</p>
 
-  <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple>
-  <input type="file" id="galleryInput" accept="image/*" multiple>
+<input type="file" id="cameraInput" accept="image/*" capture="environment" multiple>
+<input type="file" id="galleryInput" accept="image/*" multiple>
 
-  <button onclick="abrirCamara()">📸 Captura el momento</button>
-  <button onclick="abrirGaleria()">🖼️ Subir tu recuerdo</button>
-  <button onclick="subirFotos()">💾 Guardar tu recuerdo</button>
-  <button onclick="verAlbum()">📂 Ver álbum</button>
+<button onclick="abrirCamara()">📸 Captura el momento</button>
+<button onclick="abrirGaleria()">🖼️ Subir tu recuerdo</button>
+<button onclick="subirFotos()">💾 Guardar tu recuerdo</button>
+<button onclick="verAlbum()">📂 Ver álbum</button>
 
-  <p id="mensaje"></p>
+<p id="mensaje">0 fotos seleccionadas</p>
 </div>
 
 <script>
-const API_KEY = "0a5f721449bb9499e0f2049648e66abf"; // 🔧 reemplaza con tu API Key
+const API_KEY = "0a5f721449bb9499e0f2049648e66abf"; // 🔧 reemplaza con tu API Key de ImgBB
+const GITHUB_TOKEN = "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"; // 🔧 reemplaza con tu token
+const REPO = "TU_USUARIO/album-boda"; // usuario/repositorio
+const FILE_PATH = "fotos.json"; // ruta del JSON en tu repo
+
 let fotosSeleccionadas = [];
+
+document.getElementById("cameraInput").addEventListener("change", e=> seleccionarFotos(e));
+document.getElementById("galleryInput").addEventListener("change", e=> seleccionarFotos(e));
 
 function abrirCamara(){ document.getElementById("cameraInput").click(); }
 function abrirGaleria(){ document.getElementById("galleryInput").click(); }
 
-document.getElementById("cameraInput").addEventListener("change", e=> fotosSeleccionadas = Array.from(e.target.files));
-document.getElementById("galleryInput").addEventListener("change", e=> fotosSeleccionadas = Array.from(e.target.files));
+function seleccionarFotos(e){
+  fotosSeleccionadas = Array.from(e.target.files);
+  document.getElementById("mensaje").innerText = fotosSeleccionadas.length + " foto(s) seleccionadas";
+}
 
 function toBase64(file){
   return new Promise((resolve,reject)=>{
@@ -78,31 +64,68 @@ async function subirFotos(){
     document.getElementById("mensaje").innerText="No seleccionaste fotos";
     return;
   }
+
   document.getElementById("mensaje").innerText="Subiendo fotos...";
-  for(let foto of fotosSeleccionadas){
+
+  const urlsSubidas = [];
+
+  // Subir todas las fotos en paralelo
+  await Promise.all(fotosSeleccionadas.map(async foto=>{
     const formData = new FormData();
     const base64 = await toBase64(foto);
     formData.append("image", base64.split(",")[1]);
     formData.append("key", API_KEY);
 
-    try{
-      await fetch("https://api.imgbb.com/1/upload", { method:"POST", body:formData });
-    }catch(err){ console.error("Error:", err); }
-  }
+    const res = await fetch("https://api.imgbb.com/1/upload", { method:"POST", body:formData });
+    const data = await res.json();
+    urlsSubidas.push(data.data.url);
+  }));
+
+  // Actualizar fotos.json en GitHub
+  await actualizarJSON(urlsSubidas);
+
   document.getElementById("mensaje").innerText="✨ Tus recuerdos fueron guardados ✨";
+
+  // Reiniciar contador y selección
   fotosSeleccionadas = [];
 }
 
-// Abrir álbum en nueva página
+async function actualizarJSON(nuevasUrls){
+  const urlAPI = `https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`;
+  
+  // 1️⃣ Obtener contenido actual del JSON
+  const res = await fetch(urlAPI);
+  const data = await res.json();
+  const contenidoActual = JSON.parse(atob(data.content));
+
+  // 2️⃣ Agregar nuevas URLs
+  const contenidoActualizado = contenidoActual.concat(nuevasUrls);
+
+  // 3️⃣ Subir cambios a GitHub
+  await fetch(urlAPI, {
+    method: "PUT",
+    headers: {
+      "Authorization": `token ${GITHUB_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: "Agregar nuevas fotos",
+      content: btoa(JSON.stringify(contenidoActualizado)),
+      sha: data.sha
+    })
+  });
+}
+
 function verAlbum(){
   window.open("album.html", "_blank");
 }
 
-// Botones
+// Exponer funciones para los botones
 window.subirFotos = subirFotos;
 window.abrirCamara = abrirCamara;
 window.abrirGaleria = abrirGaleria;
 window.verAlbum = verAlbum;
 </script>
+
 </body>
 </html>
