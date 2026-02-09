@@ -13,14 +13,12 @@ h1 { color:#FFF; margin-bottom:20px;}
 </head>
 <body>
 
-<h1>📸 Álbum De Recuerdos</h1>
+<h1>📸 Álbum Ricordi Eterni</h1>
 <div id="album">Cargando fotos...</div>
 
 <script>
 const albumDiv = document.getElementById("album");
-
-// URL pública de tu JSON en GitHub
-const URL_JSON = "https://raw.githubusercontent.com/JoshGiosetti/album-boda/refs/heads/main/fotos.json";
+const URL_JSON = "https://raw.githubusercontent.com/TU_USUARIO/album-boda/main/fotos.json";
 
 async function cargarFotos(){
   try{
@@ -38,9 +36,10 @@ async function cargarFotos(){
   }
 }
 
-// Actualizar álbum cada 10 segundos
+// Actualizar cada 10 segundos
 cargarFotos();
-setInterval(cargarFotos, 10000);
+setInterval(cargarFotos,10000);
 </script>
+
 </body>
 </html>
